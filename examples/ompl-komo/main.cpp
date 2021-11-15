@@ -52,7 +52,7 @@ void planWithSimpleSetupKOMO() {
   og::SimpleSetup ss(space);
 
   // set state validity checking based on KOMO
-  auto filename = "model.g";
+  auto filename = "../examples/ompl-komo/model.g";
   rai::Configuration C;
   C.addFile(filename);
   KOMO komo;
@@ -116,7 +116,8 @@ void planWithSimpleSetupKOMO() {
 }
 
 void visualize_random() {
-  auto filename = "model.g";
+  auto filename = "../examples/ompl-komo/model.g";
+
   rai::Configuration C;
   C.addFile(filename);
   C.watch(true);
@@ -137,7 +138,7 @@ void visualize_random() {
 
 void compute_collisions_with_KOMO() {
 
-  auto filename = "model.g";
+  auto filename = "../examples/ompl-komo/model.g";
   rai::Configuration C;
   C.addFile(filename);
   KOMO komo;
@@ -179,8 +180,8 @@ int main(int /*argc*/, char ** /*argv*/) {
   std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
   // visualize_random();
-  compute_collisions_with_KOMO();
-  // planWithSimpleSetupKOMO();
+  /* compute_collisions_with_KOMO(); */
+  planWithSimpleSetupKOMO();
 
   return 0;
 }

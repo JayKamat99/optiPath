@@ -13,7 +13,7 @@
 #include <ompl/base/samplers/ObstacleBasedValidStateSampler.h>
 #include <ompl/base/samplers/GaussianValidStateSampler.h>
 
-#include <ompl/geometric/PathOptimizerKOMO.h>
+#include <path/PathOptimizerKOMO.h>
 #include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/config.h>
@@ -27,7 +27,6 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace om = ompl::multilevel;
 
-std::string filename;
 unsigned int C_Dimension;
 
 struct ValidityCheckWithKOMO {
@@ -64,7 +63,9 @@ void VisualizePath(arrA configs){
 	static int Trajectory = 1;
 	// setup KOMO
     rai::Configuration C;
-    C.addFile(filename.c_str());
+
+  auto filename = "../examples/Models/2D_arm.g";
+    C.addFile(filename);
     KOMO komo;
     komo.verbose = 0;
     komo.setModel(C, true);
@@ -92,13 +93,12 @@ void VisualizePath(arrA configs){
 void komoOptimize()
 {
 	// Create a text string, which is used to output the text file
-	ifstream MyReadFile("../Models/Configuration.txt");
-	getline (MyReadFile, filename);
-	MyReadFile.close(); 
+
+  auto filename = "../examples/Models/2D_arm.g";
 
 	// set state validity checking based on KOMO
 	rai::Configuration C;
-	C.addFile(filename.c_str());
+	C.addFile(filename);
 	KOMO komo;
 	komo.setModel(C, true);
 	komo.setTiming(1, 30, 5, 1);
@@ -124,13 +124,12 @@ void plan()
 {
 	// Create a text string, which is used to output the text file
 	// ifstream MyReadFile("../Models/Configuration.txt");
-	ifstream MyReadFile("/home/jay/mt-multimodal_optimization/Models/Configuration.txt");
-	getline (MyReadFile, filename);
-	MyReadFile.close(); 
+
+  auto filename = "../examples/Models/2D_arm.g";
 
 	// set state validity checking based on KOMO
 	rai::Configuration C;
-	C.addFile(filename.c_str());
+	C.addFile(filename);
 	KOMO komo;
 	komo.setModel(C, true);
 	komo.setTiming(1, 1, 1, 1);
@@ -187,7 +186,7 @@ void plan()
 
 	//Define optimizer
 	// og::PathOptimizerPtr optimizer = std::make_shared<og::PathSimplifier>(si);
-	og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si);
+	og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 
 	// Define planner
     std::cout << "\nUsing Local Minima Spanner:" << std::endl;
@@ -260,13 +259,11 @@ void benchmark()
 	bool PathOptimizer = true; //this does not matter incase of benchmark
 	// Create a text string, which is used to output the text file
 	// ifstream MyReadFile("../Models/Configuration.txt");
-	ifstream MyReadFile("../Models/Configuration.txt");
-	getline (MyReadFile, filename);
-	MyReadFile.close(); 
+  auto filename = "../examples/Models/2D_arm.g";
 
 	// set state validity checking based on KOMO
 	rai::Configuration C;
-	C.addFile(filename.c_str());
+	C.addFile(filename);
 	KOMO komo;
 	komo.setModel(C, true);
 	komo.setTiming(1, 1, 1, 1);
@@ -373,7 +370,7 @@ void benchmark()
 		auto planner1 = std::make_shared<om::LocalMinimaSpanners>(siVec);
 
 		if (PathOptimizer){
-			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si);
+			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 			planner1->setOptimizer(optimizer);
 			ss.setPlanner(planner1);
 		}
