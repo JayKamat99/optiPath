@@ -7,7 +7,7 @@ add_compile_options(-O3 -g -Wall -fPIC -std=c++0x -Wno-terminate)
 # include_directories(src)
 # include_directories(src/multimodal_optimizers)
 
-# include_directories(ompl/src)
+include_directories(ompl/src)
 
 add_subdirectory(ompl)
 
@@ -64,6 +64,12 @@ add_library(rai SHARED
   )
 
 
+# try to add one 
+
+
+
+
+
 # file(GLOB MM_OPT src/multimodal_optimizers/src/*.cpp)
 
 # # file(GLOB ML ./src/multilevel/datastructures/src/*.cpp
@@ -78,7 +84,6 @@ add_library(rai SHARED
 
 
 
-# add_library(ML SHARED ${SRC_ML} )
 
 
 # # target_link_libraries(JAY rai ompl)
@@ -107,3 +112,24 @@ target_link_libraries(rai
 #           src/mainRai.cpp)
 
 # target_link_libraries(trial rai ompl)
+
+
+include_directories(src)
+
+file(GLOB SRC_PATH src/path/*.cpp)
+add_library(Path SHARED ${SRC_PATH} )
+target_link_libraries(Path rai ompl)
+
+# executable that only depends on ompl
+add_executable(t_ompl examples/ompl/main.cpp)
+target_link_libraries( t_ompl ompl )
+
+# executable thatdepends on ompl and rai
+add_executable(t_ompl_komo ./examples/ompl-komo/main.cpp)
+target_link_libraries( t_ompl_komo ompl rai )
+
+# executable that uses all
+add_executable(t_manip ./examples/Manipulator/main.cpp)
+target_link_libraries( t_manip ompl rai Path )
+
+
