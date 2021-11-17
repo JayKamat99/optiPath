@@ -33,7 +33,7 @@ info = {
             "success": 30,
             "optimization": 30
         },
-        "max_cost": 4,
+        "max_cost": 10,
         "ci_left": 39,
         "ci_right": 59,
         # "rrtconnect_tb": [1, 2, 4],

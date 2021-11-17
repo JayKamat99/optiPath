@@ -191,7 +191,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 		}
 		if (planner_ == "PathOptimizerKOMO"){
 			auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
-			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si);
+			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 			planner->setOptimizer(optimizer);
 			b.addPlanner(planner);
 		}
@@ -199,6 +199,10 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
 			og::PathOptimizerPtr optimizer = std::make_shared<og::PathSimplifier>(si);
 			planner->setOptimizer(optimizer);
+			b.addPlanner(planner);
+		}
+		if (planner_ == "KOMO"){
+			auto planner(std::make_shared<og::Planner_KOMO>(filename));
 			b.addPlanner(planner);
 		}
 		
@@ -246,7 +250,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 		ss.setup();
 
 		// attempt to solve the problem
-		ob::PlannerStatus solved = ss.solve(3.0);
+		ob::PlannerStatus solved = ss.solve(10.0);
 
 		if (solved == ob::PlannerStatus::StatusType::APPROXIMATE_SOLUTION)
 			std::cout << "Found solution: APPROXIMATE_SOLUTION" << std::endl;
@@ -308,8 +312,6 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 int main(int argc, char ** argv)
 {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
-	// std::cout << argc;
-	// std::cout << "              0" << argv[0] << "1" << argv[1] << "2" << argv[2] << std::endl;
 	if (argc<2){
 		benchmark();
 	}

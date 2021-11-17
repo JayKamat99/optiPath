@@ -19,8 +19,6 @@ const char* filename) : filename(filename){
 
 bool ompl::geometric::PathOptimizerKOMO::optimize(PathGeometric &path)
 {
-    // static int PathNumber = 1;
-    // std::string OutputFileName = "/home/jay/git/optimization-course/examples/Manipulator/Paths/path[" +std::to_string(PathNumber++) + "].txt";
 	arrA configs;
 	//To copy the path to arrA Configs from states.
 	const base::StateSpace *space(si_->getStateSpace().get());
@@ -35,16 +33,6 @@ bool ompl::geometric::PathOptimizerKOMO::optimize(PathGeometric &path)
 			configs.append(config);
 	}
 
-    // std::ofstream out(OutputFileName);
-    // for (unsigned int i = 0; i<configs.N; i++){
-    //     out << configs(i) << "\n";
-    // }
-    // out.close();
-
-    // std::cout << configs.N << "before" << std::endl;
-
-    // Create a text string, which is used to output the text file
-
     // setup KOMO
     rai::Configuration C;
     C.addFile(filename.c_str());
@@ -55,7 +43,6 @@ bool ompl::geometric::PathOptimizerKOMO::optimize(PathGeometric &path)
     komo.setTiming(1., configs.N, 5., 2);
     komo.add_qControlObjective({}, 1, 2.);
 
-    // std::cout << configs << std::endl;
     komo.addObjective({1.}, FS_qItself, {}, OT_eq, {10}, configs(configs.N-1), 0);
     komo.addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
     komo.add_collision(true);
@@ -67,11 +54,8 @@ bool ompl::geometric::PathOptimizerKOMO::optimize(PathGeometric &path)
     komo.optimize();
 	rai::Graph R = komo.getReport(false);
  	double constraint_violation = R.get<double>("eq") + R.get<double>("ineq");
-    // std::cout << "Constraint Violations:" << constraint_violation << std::endl;
 
     configs = komo.getPath_q();
-    
-    // std::cout << configs.N << "after" << std::endl;
 
     bool isValid = true;
     if (constraint_violation > 1){
