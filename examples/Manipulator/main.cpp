@@ -14,6 +14,7 @@
 #include <ompl/base/samplers/GaussianValidStateSampler.h>
 
 #include <path/PathOptimizerKOMO.h>
+#include <path/Planner_KOMO.h>
 #include <ompl/geometric/PathSimplifier.h>
 
 #include <ompl/config.h>
@@ -109,6 +110,16 @@ void komoOptimize(const char* filename = "")
 	komo.view_play(true);
 }
 
+void Planner_KOMO()
+{
+	auto filename = "../examples/Models/2D_arm.g";
+	auto space(std::make_shared<ob::RealVectorStateSpace>(2));
+	og::SimpleSetup ss(space);
+	auto si = ss.getSpaceInformation();
+	auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
+	ss.solve(10.0);
+}
+
 void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = false)
 {
   	auto filename = "../examples/Models/2D_arm.g";
@@ -202,7 +213,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			b.addPlanner(planner);
 		}
 		if (planner_ == "KOMO"){
-			auto planner(std::make_shared<og::Planner_KOMO>(filename));
+			auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
 			b.addPlanner(planner);
 		}
 		
@@ -231,7 +242,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 	}
 
 	else{
-		bool PathOptimizer = true;
+		bool PathOptimizer = false;
 		auto si = ss.getSpaceInformation();
 		std::vector<ob::SpaceInformationPtr> siVec;
 		siVec.push_back(si);
@@ -242,8 +253,12 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			planner1->setOptimizer(optimizer);
 			ss.setPlanner(planner1);
 		}
-		else{
+		else if(0){
 			auto planner(std::make_shared<og::RRTstar>(si));
+			ss.setPlanner(planner);
+		}
+		else{
+			auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
 			ss.setPlanner(planner);
 		}
 		
@@ -314,6 +329,7 @@ int main(int argc, char ** argv)
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 	if (argc<2){
 		benchmark();
+		// Planner_KOMO();
 	}
 	else{
 		std::string planner_ = argv[1];
