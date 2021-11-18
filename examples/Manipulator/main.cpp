@@ -122,7 +122,7 @@ void Planner_KOMO()
 
 void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = false)
 {
-  	auto filename = "../examples/Models/2D_arm.g";
+  	auto filename = "../examples/Models/kuka_multimodal.g";
 
 	// set state validity checking based on KOMO
 	rai::Configuration C;
@@ -217,17 +217,6 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			b.addPlanner(planner);
 		}
 		
-		// For planners that we want to configure in specific ways,
-		// the ompl::base::PlannerAllocator should be used:
-		// b.addPlannerAllocator(std::bind(&myConfiguredPlanner, std::placeholders::_1));
-		// add post run events
-		// collect costs over time
-		// etc.
-		
-		// Now we can benchmark: 5 second time limit for each plan computation,
-		// 100 MB maximum memory usage per plan computation, 50 runs for each planner
-		// and true means that a text-mode progress bar should be displayed while
-		// computation is running.
 		ompl::tools::Benchmark::Request req;
 		req.maxTime = 5.0;
 		req.maxMem = 100.0;
@@ -235,7 +224,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 		req.displayProgress = true;
 		b.benchmark(req);
 		
-		// This will generate a file of the form ompl_host_time.log
+		// This will generate a .log file
 		std::ostringstream oss;
 		oss << "data/Benchmarks/benchmark_" << planner_ << ".log";
 		b.saveResultsToFile(oss.str().c_str());

@@ -34,8 +34,15 @@ ompl::base::PlannerStatus ompl::geometric::Planner_KOMO::solve(const base::Plann
     komo.setTiming(1., 30, 5., 2);
     komo.add_qControlObjective({}, 1, 2.);
 
-    komo.addObjective({1.}, FS_qItself, {}, OT_eq, {10}, {1.5,1.5}, 0);
-	komo.addObjective({0.9,1.}, FS_qItself, {}, OT_eq, {10}, {0,0}, 1);
+	arr goal, f_vel;
+	for (int i=0; i < C.getJointStateDimension(); i++){
+		if (i>3) goal.append(0);
+		else goal.append(1.5);
+		f_vel.append(0);
+	}
+
+    komo.addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal, 0);
+	komo.addObjective({0.9,1.}, FS_qItself, {}, OT_eq, {10}, f_vel, 1);
     komo.addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
     komo.add_collision(true);
 
