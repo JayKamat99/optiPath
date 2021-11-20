@@ -89,41 +89,8 @@ void VisualizePath(arrA configs, const char* filename = ""){
 	Trajectory ++;
 }
 
-void komoOptimize(const char* filename = "")
+void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string planner_ = "PathOptimizerKOMO", bool benchmark = false)
 {
-	// set state validity checking based on KOMO
-	rai::Configuration C;
-	C.addFile(filename);
-	KOMO komo;
-	komo.setModel(C, true);
-	komo.setTiming(1, 30, 5, 1);
-	komo.add_qControlObjective({}, 1, 50.);
-	komo.run_prepare(0);
-	komo.addObjective({}, FS_accumulatedCollisions, {}, OT_eq, { 1 });
-	komo.addObjective({1.}, FS_positionDiff, {"tool0_joint", "ball"}, OT_eq, {1e1});
-	komo.add_collision(true);
-
-	komo.optimize();
-	std::cout << komo.getPath_q() << std::endl;
-	komo.plotTrajectory();
-	komo.view(true);
-	komo.view_play(true);
-}
-
-void Planner_KOMO()
-{
-	auto filename = "../examples/Models/2D_arm.g";
-	auto space(std::make_shared<ob::RealVectorStateSpace>(2));
-	og::SimpleSetup ss(space);
-	auto si = ss.getSpaceInformation();
-	auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
-	ss.solve(10.0);
-}
-
-void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = false)
-{
-  	auto filename = "../examples/Models/kuka_multimodal.g";
-
 	// set state validity checking based on KOMO
 	rai::Configuration C;
 	C.addFile(filename);
@@ -201,6 +168,8 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			b.addPlanner(planner1);
 		}
 		if (planner_ == "PathOptimizerKOMO"){
+			//build KOMO object
+			auto komo1(std::make_shared<KOMO>());
 			auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
 			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 			planner->setOptimizer(optimizer);
@@ -220,7 +189,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 		ompl::tools::Benchmark::Request req;
 		req.maxTime = 5.0;
 		req.maxMem = 100.0;
-		req.runCount = 1;
+		req.runCount = 10;
 		req.displayProgress = true;
 		b.benchmark(req);
 		
@@ -231,22 +200,26 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 	}
 
 	else{
-		bool PathOptimizer = false;
 		auto si = ss.getSpaceInformation();
 		std::vector<ob::SpaceInformationPtr> siVec;
 		siVec.push_back(si);
 		auto planner1 = std::make_shared<om::LocalMinimaSpanners>(siVec);
 
-		if (PathOptimizer){
+		if (planner_ == "PathOptimizerKOMO"){
 			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 			planner1->setOptimizer(optimizer);
 			ss.setPlanner(planner1);
 		}
-		else if(0){
+		else if (planner_ == "PathSimplifier"){
+			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
+			planner1->setOptimizer(optimizer);
+			ss.setPlanner(planner1);
+		}
+		else if(planner_ == "RRTstar"){
 			auto planner(std::make_shared<og::RRTstar>(si));
 			ss.setPlanner(planner);
 		}
-		else{
+		else if(planner_ == "KOMO"){
 			auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
 			ss.setPlanner(planner);
 		}
@@ -254,7 +227,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 		ss.setup();
 
 		// attempt to solve the problem
-		ob::PlannerStatus solved = ss.solve(10.0);
+		ob::PlannerStatus solved = ss.solve(20.0);
 
 		if (solved == ob::PlannerStatus::StatusType::APPROXIMATE_SOLUTION)
 			std::cout << "Found solution: APPROXIMATE_SOLUTION" << std::endl;
@@ -267,7 +240,7 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 			return;
 		}
 
-		if(PathOptimizer){ //This code is for visualization of the paths from PathOptimizer
+		if(planner_ == "PathOptimizerKOMO" || "PathSimplifier"){ //This code is for visualization of the paths from PathOptimizer
 			auto localMinimaTree = planner1->getLocalMinimaTree();
 			int NumberOfMinima =  (int)localMinimaTree->getNumberOfMinima();
 			int NumberOfLevels =  (int)localMinimaTree->getNumberOfLevel();
@@ -316,13 +289,17 @@ void benchmark(std::string planner_ = "PathOptimizerKOMO", bool benchmark = fals
 int main(int argc, char ** argv)
 {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
+	const char* filename = "";
+	std::string planner_ = "";
+	bool benchmark_ = false;
 	if (argc<2){
 		benchmark();
-		// Planner_KOMO();
 	}
 	else{
-		std::string planner_ = argv[1];
-		benchmark(planner_, true);
+		filename = argv[1];
+		planner_ = argv[2];
+		if (argv[3] == "true") benchmark_ = true;
+		benchmark(filename, planner_, benchmark_);
 	}
 	return 0;
 }

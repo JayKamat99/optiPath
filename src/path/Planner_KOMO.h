@@ -14,7 +14,7 @@ namespace ompl
         {
         protected:
             void freeMemory();
-			double bestCost = 10 /* std::numeric_limits<double>::infinity() */;
+			double bestCost = 100 /* std::numeric_limits<double>::infinity() */;
 			std::string bestCostProperty()
             {
                 return std::to_string(bestCost);
