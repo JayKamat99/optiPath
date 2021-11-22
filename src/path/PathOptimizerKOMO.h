@@ -4,6 +4,11 @@
 #include <ompl/geometric/PathOptimizer.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/geometric/PathGeometric.h>
+
+#include <KOMO/komo.h>
+#include <Kin/viewer.h>
+#include <Core/graph.h>
+
 #include <string>
 
 namespace ompl
@@ -15,15 +20,14 @@ namespace ompl
         class PathOptimizerKOMO : public PathOptimizer
         {
         private:
-            /* data */
-
+            std::shared_ptr<KOMO> komo_;
+            
         public:
             // using PathOptimizer::PathOptimizer;
-            PathOptimizerKOMO(base::SpaceInformationPtr si, const char* filename="");
+            PathOptimizerKOMO(base::SpaceInformationPtr si, std::shared_ptr<KOMO> komo_);
             virtual ~PathOptimizerKOMO() = default;
 
             bool optimize(PathGeometric &path) override;
-            std::string filename;
         };  
     } // namespace  geometric
 } //namespace ompl
