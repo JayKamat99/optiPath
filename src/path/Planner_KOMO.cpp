@@ -1,11 +1,7 @@
 #include <path/Planner_KOMO.h>
 #include <thread>
 
-#include <KOMO/komo.h>
-#include <Kin/viewer.h>
-#include <Core/graph.h>
-
-ompl::geometric::Planner_KOMO::Planner_KOMO(const base::SpaceInformationPtr &si, const char* filename="") : base::Planner(si, "Planner_KOMO"), filename(filename)
+ompl::geometric::Planner_KOMO::Planner_KOMO(const base::SpaceInformationPtr &si, std::shared_ptr<KOMO> komo_) : base::Planner(si, "Planner_KOMO"), komo_(std::move(komo_))
 {
 	std::cout << "Planner_KOMO object created" << std::endl;
 	addPlannerProgressProperty("best cost REAL", [this] { return bestCostProperty(); });
@@ -25,7 +21,7 @@ ompl::base::PlannerStatus ompl::geometric::Planner_KOMO::solve(const base::Plann
 {
 	std::cout << "This will run KOMO.optimize" << std::endl;
 	// setup KOMO
-    rai::Configuration C;
+    /* rai::Configuration C;
     C.addFile(filename.c_str());
     KOMO komo;
     komo.verbose = 0;
@@ -44,15 +40,15 @@ ompl::base::PlannerStatus ompl::geometric::Planner_KOMO::solve(const base::Plann
     komo.addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal, 0);
 	komo.addObjective({0.9,1.}, FS_qItself, {}, OT_eq, {10}, f_vel, 1);
     komo.addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
-    komo.add_collision(true);
+    komo.add_collision(true); */
 
-    komo.run_prepare(0);
-    komo.animateOptimization = 0;
-    komo.optimize();
-	rai::Graph R = komo.getReport(false);
+    komo_->run_prepare(0);
+    komo_->animateOptimization = 0;
+    komo_->optimize();
+	rai::Graph R = komo_->getReport(false);
  	double constraint_violation = R.get<double>("eq") + R.get<double>("ineq");
 
-    arrA configs = komo.getPath_q();
+    arrA configs = komo_->getPath_q();
 	double cost = R.get<double>("sos");
 	std::cout << "cost" << cost << std::endl;
 	this->bestCost = cost;

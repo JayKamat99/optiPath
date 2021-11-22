@@ -134,11 +134,12 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 
     // create a goal state
     ob::ScopedState<> goal(space);
+	arr goal_;
 	for (unsigned int i=0; i<C.getJointStateDimension(); i++){
 		if (i>3)	continue;
 		goal[i] = komo.getConfiguration_q(0).elem(i)+1.5;
+		goal_.append(goal[i]);
 	}
-	// goal = {2,0};
 
 	std::cout << goal << std::endl;
 
@@ -167,25 +168,39 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			auto planner1(std::make_shared<og::RRTstar>(si));
 			b.addPlanner(planner1);
 		}
-		if (planner_ == "PathOptimizerKOMO"){
-			//build KOMO object
-			auto komo1(std::make_shared<KOMO>());
-			auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
-			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
-			planner->setOptimizer(optimizer);
-			b.addPlanner(planner);
-		}
 		if (planner_ == "PathSimplifier"){
 			auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
 			og::PathOptimizerPtr optimizer = std::make_shared<og::PathSimplifier>(si);
 			planner->setOptimizer(optimizer);
 			b.addPlanner(planner);
 		}
-		if (planner_ == "KOMO"){
-			auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
-			b.addPlanner(planner);
+		if (planner_ == "PathOptimizerKOMO" || "KOMO")
+		{
+			//build the KOMO object here:
+			auto komo_(std::make_shared<KOMO>());
+			komo_->verbose = 0;
+			komo_->setModel(C, true);
+			
+			komo_->setTiming(1., 50, 5., 2);
+			komo_->add_qControlObjective({}, 1, 2.);
+
+			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
+			komo_->addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
+			komo_->add_collision(true);
+
+			if (planner_ == "PathOptimizerKOMO"){
+				auto komo1(std::make_shared<KOMO>());
+				auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
+				og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
+				planner->setOptimizer(optimizer);
+				b.addPlanner(planner);
+			}
+			if (planner_ == "KOMO"){
+				auto planner(std::make_shared<og::Planner_KOMO>(si, komo_));
+				b.addPlanner(planner);
+			}
 		}
-		
+
 		ompl::tools::Benchmark::Request req;
 		req.maxTime = 5.0;
 		req.maxMem = 100.0;
@@ -205,23 +220,37 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		siVec.push_back(si);
 		auto planner1 = std::make_shared<om::LocalMinimaSpanners>(siVec);
 
-		if (planner_ == "PathOptimizerKOMO"){
-			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
-			planner1->setOptimizer(optimizer);
-			ss.setPlanner(planner1);
+		if(planner_ == "RRTstar"){
+			auto planner(std::make_shared<og::RRTstar>(si));
+			ss.setPlanner(planner);
 		}
 		else if (planner_ == "PathSimplifier"){
 			og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
 			planner1->setOptimizer(optimizer);
 			ss.setPlanner(planner1);
 		}
-		else if(planner_ == "RRTstar"){
-			auto planner(std::make_shared<og::RRTstar>(si));
-			ss.setPlanner(planner);
-		}
-		else if(planner_ == "KOMO"){
-			auto planner(std::make_shared<og::Planner_KOMO>(si, filename));
-			ss.setPlanner(planner);
+		else{
+			//build the KOMO object here:
+			auto komo_(std::make_shared<KOMO>());
+			komo_->verbose = 0;
+			komo_->setModel(C, true);
+			
+			komo_->setTiming(1., 50, 5., 2);
+			komo_->add_qControlObjective({}, 1, 2.);
+
+			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
+			komo_->addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
+			komo_->add_collision(true);
+
+			if (planner_ == "PathOptimizerKOMO"){
+				og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
+				planner1->setOptimizer(optimizer);
+				ss.setPlanner(planner1);
+			}
+			else if(planner_ == "KOMO"){
+				auto planner(std::make_shared<og::Planner_KOMO>(si, komo_));
+				ss.setPlanner(planner);
+			}
 		}
 		
 		ss.setup();
