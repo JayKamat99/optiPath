@@ -64,7 +64,7 @@ ompl::base::PlannerStatus ompl::geometric::Planner_KOMO::solve(const base::Plann
 	//copy the final config to states
 	const base::StateSpace *space(si_->getStateSpace().get());
 	auto path(std::make_shared<PathGeometric>(si_));
-	for (int i=0; i<30; i++)
+	for (uint i=0; i<komo_->stepsPerPhase; i++)
     {
 		ompl::base::State* state = si_->allocState();
 		std::vector<double> reals;

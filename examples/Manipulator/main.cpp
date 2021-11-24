@@ -122,8 +122,8 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		return checker.check(state);
 	});
 
-	// si->setValidStateSamplerAllocator(allocOBValidStateSampler);
-	// si->setValidStateSamplerAllocator(allocGaussianValidStateSampler);
+	// ss.getSpaceInformation()->setValidStateSamplerAllocator(allocOBValidStateSampler);
+	// ss.getSpaceInformation()->setValidStateSamplerAllocator(allocGaussianValidStateSampler);
 
     // create a start state
     ob::ScopedState<> start(space);
@@ -175,10 +175,11 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			komo_->setModel(C, true);
 			
 			komo_->setTiming(1., stepsPerPhase_, 5., 2);
-			komo_->add_qControlObjective({}, 1, 2.);
+			// komo_->add_qControlObjective({}, 1, 2.);
+			komo_->add_qControlObjective({}, 2, 10000.);
 
 			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
-			komo_->addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
+			komo_->addObjective({}, FS_qItself, {}, OT_ineq, {1.}, {}, 1);
 			komo_->add_collision(true);
 
 			if (planner_ == "PathOptimizerKOMO"){
@@ -231,7 +232,6 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			komo_->add_qControlObjective({}, 1, 2.);
 
 			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
-			std::cout << "goal: " << goal_ << std::endl;
 			komo_->addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
 			komo_->add_collision(true);
 
@@ -249,7 +249,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		ss.setup();
 
 		// attempt to solve the problem
-		ob::PlannerStatus solved = ss.solve(5.0);
+		ob::PlannerStatus solved = ss.solve(20.0);
 
 		if (solved == ob::PlannerStatus::StatusType::APPROXIMATE_SOLUTION)
 			std::cout << "Found solution: APPROXIMATE_SOLUTION" << std::endl;
