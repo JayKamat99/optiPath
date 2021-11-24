@@ -182,7 +182,6 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			komo_->add_collision(true);
 
 			if (planner_ == "PathOptimizerKOMO"){
-				auto komo1(std::make_shared<KOMO>());
 				auto planner(std::make_shared<om::LocalMinimaSpanners>(siVec));
 				og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,komo_);
 				planner->setOptimizer(optimizer);
@@ -195,9 +194,9 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		}
 
 		ompl::tools::Benchmark::Request req;
-		req.maxTime = 10.0;
+		req.maxTime = 5.0;
 		req.maxMem = 100.0;
-		req.runCount = 5;
+		req.runCount = 10;
 		req.displayProgress = true;
 		b.benchmark(req);
 		
@@ -250,7 +249,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		ss.setup();
 
 		// attempt to solve the problem
-		ob::PlannerStatus solved = ss.solve(20.0);
+		ob::PlannerStatus solved = ss.solve(5.0);
 
 		if (solved == ob::PlannerStatus::StatusType::APPROXIMATE_SOLUTION)
 			std::cout << "Found solution: APPROXIMATE_SOLUTION" << std::endl;
@@ -263,7 +262,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			return;
 		}
 
-		if(planner_ == "PathOptimizerKOMO" || "PathSimplifier"){ //This code is for visualization of the paths from PathOptimizer
+		if(planner_ == "PathOptimizerKOMO" || planner_ == "PathSimplifier"){ //This code is for visualization of the paths from PathOptimizer
 			auto localMinimaTree = planner1->getLocalMinimaTree();
 			int NumberOfMinima =  (int)localMinimaTree->getNumberOfMinima();
 			int NumberOfLevels =  (int)localMinimaTree->getNumberOfLevel();
@@ -290,6 +289,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 				}
 			}
 		}
+
 		else{// This is for visualization of paths from other planners
 			auto path = ss.getSolutionPath();
 			arrA configs;
