@@ -59,7 +59,7 @@ ompl::base::PlannerStatus ompl::geometric::Planner_KOMO::solve(const base::Plann
     }
 
 	std::chrono::seconds dura(1);
-    std::this_thread::sleep_for( dura );
+    // std::this_thread::sleep_for( dura );
 
 	//copy the final config to states
 	const base::StateSpace *space(si_->getStateSpace().get());

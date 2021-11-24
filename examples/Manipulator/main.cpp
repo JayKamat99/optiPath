@@ -101,6 +101,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 	komo.run_prepare(0);
 
 	C_Dimension = C.getJointStateDimension();
+	uint stepsPerPhase_ = 150;
 
 	//Construct the state space we are planning in
 	auto space(std::make_shared<ob::RealVectorStateSpace>(C_Dimension));
@@ -136,23 +137,15 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
     ob::ScopedState<> goal(space);
 	arr goal_;
 	for (unsigned int i=0; i<C.getJointStateDimension(); i++){
-		if (i>3)	continue;
+		if (i>3){goal_.append(0);	continue;}
 		goal[i] = komo.getConfiguration_q(0).elem(i)+1.5;
 		goal_.append(goal[i]);
 	}
 
 	std::cout << goal << std::endl;
 
-    // create an instance of problem definition
-    // auto pdef(std::make_shared<ob::ProblemDefinition>(si));
-
     // Set the start and goal states
     ss.setStartAndGoalStates(start, goal);
-	// auto si = ss.getSpaceInformation();
-
-	// //Define optimizer
-	// // og::PathOptimizerPtr optimizer = std::make_shared<og::PathSimplifier>(si);
-	// og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si);
 
 
 	if(benchmark)
@@ -181,7 +174,7 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			komo_->verbose = 0;
 			komo_->setModel(C, true);
 			
-			komo_->setTiming(1., 50, 5., 2);
+			komo_->setTiming(1., stepsPerPhase_, 5., 2);
 			komo_->add_qControlObjective({}, 1, 2.);
 
 			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
@@ -202,9 +195,9 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 		}
 
 		ompl::tools::Benchmark::Request req;
-		req.maxTime = 5.0;
+		req.maxTime = 10.0;
 		req.maxMem = 100.0;
-		req.runCount = 10;
+		req.runCount = 5;
 		req.displayProgress = true;
 		b.benchmark(req);
 		
@@ -224,21 +217,22 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 			auto planner(std::make_shared<og::RRTstar>(si));
 			ss.setPlanner(planner);
 		}
-		// else if (planner_ == "PathSimplifier"){
-		// 	og::PathOptimizerPtr optimizer = std::make_shared<og::PathOptimizerKOMO>(si,filename);
-		// 	planner1->setOptimizer(optimizer);
-		// 	ss.setPlanner(planner1);
-		// }
+		else if (planner_ == "PathSimplifier"){
+			og::PathOptimizerPtr optimizer = std::make_shared<og::PathSimplifier>(si);
+			planner1->setOptimizer(optimizer);
+			ss.setPlanner(planner1);
+		}
 		else{
 			//build the KOMO object here:
 			auto komo_(std::make_shared<KOMO>());
 			komo_->verbose = 0;
 			komo_->setModel(C, true);
 			
-			komo_->setTiming(1., 150, 5., 2);
+			komo_->setTiming(1., stepsPerPhase_, 5., 2);
 			komo_->add_qControlObjective({}, 1, 2.);
 
 			komo_->addObjective({1.}, FS_qItself, {}, OT_eq, {10}, goal_, 0);
+			std::cout << "goal: " << goal_ << std::endl;
 			komo_->addObjective({}, FS_accumulatedCollisions, {}, OT_eq, {1.});
 			komo_->add_collision(true);
 
@@ -318,16 +312,14 @@ void benchmark(const char* filename = "../examples/Models/2D_arm.g", std::string
 int main(int argc, char ** argv)
 {
 	std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
-	const char* filename = "";
-	std::string planner_ = "";
-	bool benchmark_ = false;
 	if (argc<2){
 		benchmark();
 	}
 	else{
-		filename = argv[1];
-		planner_ = argv[2];
-		if (argv[3] == "true") benchmark_ = true;
+		const char* filename = argv[1];
+		std::string planner_ = argv[2];
+		std::string b = argv[3];
+		bool benchmark_ = (b == "true");
 		benchmark(filename, planner_, benchmark_);
 	}
 	return 0;
